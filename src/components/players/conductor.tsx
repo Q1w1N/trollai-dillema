@@ -140,9 +140,8 @@ export const Conductor = () => {
         value={conductorDecision}
         className="w-full"
       >
-        <TabsList className="w-full">
+        <TabsList className="w-full pointer-events-none select-none">
           <TabsTrigger
-            disabled
             className="flex-1 data-[state=active]:bg-green-700"
             value="left"
           >
@@ -151,12 +150,10 @@ export const Conductor = () => {
           <TabsTrigger
             className="flex-1 data-[state=active]:bg-red-700"
             value={'bomb'}
-            disabled
           >
             <Bomb />
           </TabsTrigger>
           <TabsTrigger
-            disabled
             className="flex-1 data-[state=active]:bg-blue-700"
             value="right"
           >

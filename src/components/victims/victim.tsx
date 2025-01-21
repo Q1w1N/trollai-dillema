@@ -15,7 +15,7 @@ export const Victim = ({ side, victimDescriptionAtom }: VictimProps) => {
   const [gameState] = useAtom(gameStateAtom);
 
   return (
-    <div className="relative flex flex-col gap-6 col-span-4 rounded-xl border w-[60%] justify-self-center text-white justify-items-center p-8">
+    <div className="relative flex flex-col gap-6 col-span-4 rounded-xl border w-[60%] justify-self-center bg-background text-white justify-items-center p-8">
       {gameState === 'paused' ? (
         <>
           <p>Describe {side} victim</p>
