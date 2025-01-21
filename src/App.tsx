@@ -15,7 +15,7 @@ function App() {
 
   return (
     <main className="h-full w-full grid grid-cols-1 grid-rows-1 bg-zinc-950">
-      <div className="grid w-[1000px] grid-cols-3 grid-rows-6 justify-self-center p-6">
+      <div className="grid w-[1000px] grid-cols-3 grid-rows-8 justify-self-center p-6">
         <VictimsSection />
         <DebateSection />
         <PlayersSection />

@@ -3,19 +3,21 @@ import {
   rightPlayerSpeechAtom,
 } from '@/atoms/players-atoms';
 import { PlayerSpeech } from './player-speech';
-import { Button } from '../ui/button';
+import { ConductorSpeech } from './conductor-speech';
 
 export const DebateSection = () => {
   return (
-    <div className="grid grid-cols-3 row-span-2 col-span-3 gap-3 p-3 justify-stretch">
-      <PlayerSpeech side="left" playerSpeechAtom={leftPlayerSpeechAtom} />
-
-      <div className="flex-1">
-        <div className="flex-1 place-self-center">
-          <Button disabled>START</Button>
-        </div>
+    <div className="grid grid-rows-1 grid-cols-3 row-span-4 col-span-3 gap-3 justify-stretch">
+      <div className="col-span-1 row-span-1 p-4">
+        <PlayerSpeech side="left" playerSpeechAtom={leftPlayerSpeechAtom} />
       </div>
-      <PlayerSpeech side="right" playerSpeechAtom={rightPlayerSpeechAtom} />
+
+      <div className="col-span-1 row-span-1 p-4">
+        <ConductorSpeech />
+      </div>
+      <div className="col-span-1 row-span-1 p-4">
+        <PlayerSpeech side="right" playerSpeechAtom={rightPlayerSpeechAtom} />
+      </div>
     </div>
   );
 };
