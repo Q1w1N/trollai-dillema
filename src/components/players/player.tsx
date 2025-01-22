@@ -11,6 +11,13 @@ import z from 'zod';
 import { PlayerState } from '@/types';
 import { conductorStateAtom } from '@/atoms/conductor-atoms';
 import { getPlayerSystemPrompt } from '@/ai-brains/player-system';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
 
 const openai = createOpenAI({ apiKey: import.meta.env['VITE_OPENAI_API_KEY'] });
 
@@ -44,7 +51,7 @@ export const Player = ({
   const [playerVictim] = useAtom(playerVictimDescription);
   const [oponentVictim] = useAtom(oponentVictimDescription);
 
-  const playerColor = side === 'left' ? 'bg-green-900' : 'bg-blue-900';
+  const playerColor = side === 'left' ? 'border-emerald-300' : 'border-sky-300';
 
   const preparePlayer = useCallback(() => {
     console.log('Declaring agent!');
@@ -52,7 +59,7 @@ export const Player = ({
       model: openai('gpt-4'),
       system: getPlayerSystemPrompt(description, playerVictim, oponentVictim),
       toolChoice: 'required',
-      maxSteps: 2,
+      maxSteps: 3,
       tools: {
         present_argument: tool({
           parameters: z.object({
@@ -74,23 +81,27 @@ export const Player = ({
 
       console.log('Running Execute on ', side);
       const player = preparePlayer();
-      execute(
-        {
-          agent: `${side}Agent`,
-          name: `trolley-${side}-player`,
-          input: 'Game has started',
-        },
-        {
-          agents: { [`${side}Agent`]: player },
-          onFlowStart: () => {
-            console.log(`trolley-${side}-player Started argumenting`);
+      try {
+        execute(
+          {
+            agent: `${side}Agent`,
+            name: `trolley-${side}-player`,
+            input: 'Game has started',
           },
-          onFlowFinish: () => {
-            console.log(`trolley-${side}-player Finished argumenting`);
-            setPlayerState('waiting-for-verdict');
+          {
+            agents: { [`${side}Agent`]: player },
+            onFlowStart: () => {
+              console.log(`trolley-${side}-player Started argumenting`);
+            },
+            onFlowFinish: () => {
+              console.log(`trolley-${side}-player Finished argumenting`);
+              setPlayerState('waiting-for-verdict');
+            },
           },
-        },
-      );
+        );
+      } catch (e) {
+        console.error(e);
+      }
     }
   }, [gameState, preparePlayer, side, setPlayerState]);
 
@@ -101,18 +112,21 @@ export const Player = ({
   }, [conductorState, setPlayerState]);
 
   return (
-    <div
-      className={'col-span-1 rounded-xl content-center justify-items-center'}
+    <Card
+      className={cn(
+        'flex flex-col col-span-1 rounded-xl border-2',
+        playerColor,
+      )}
     >
-      <div
-        className={cn(
-          'flex flex-col h-full w-full p-6 border rounded-xl items-center gap-6 text-white',
-          playerColor,
-        )}
-      >
-        {gameState === 'paused' ? (
-          <>
-            <p>Describe {side} player</p>
+      {gameState === 'paused' ? (
+        <>
+          <CardHeader>
+            <CardTitle className="capitalize">{side} player</CardTitle>
+            <CardDescription>
+              Describe player on the {side} side
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <Textarea
               value={description}
               onChange={(e) => {
@@ -120,13 +134,13 @@ export const Player = ({
               }}
               className="w-full h-full"
             />
-          </>
-        ) : (
-          <div className="flex-1 content-center text-2xl text-center justify-center font-medium capitalize">
-            {description}
-          </div>
-        )}
-      </div>
-    </div>
+          </CardContent>
+        </>
+      ) : (
+        <CardContent className="flex-1 content-center text-2xl pt-6 text-center justify-center font-medium capitalize">
+          {description}
+        </CardContent>
+      )}
+    </Card>
   );
 };

@@ -12,16 +12,16 @@ export const SpeechBubble = ({ text, side }: SpeechBubbleProps) => {
       case 'decision':
         return 'bg-gray-700';
       case 'left':
-        return 'bg-green-700';
+        return 'bg-emerald-300 text-gray-700';
       case 'right':
-        return 'bg-blue-700';
+        return 'bg-sky-300 text-gray-700';
     }
   }, [side]);
 
   return (
     <div
       className={clsx(
-        'flex w-full bg-opacity-45 flex-col gap-2 rounded-lg px-3 py-2 text-xs',
+        'w-full bg-opacity-70 flex-col gap-2 rounded-md p-3 text-xs my-2',
         classes,
       )}
     >

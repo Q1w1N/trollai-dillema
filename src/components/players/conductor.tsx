@@ -11,7 +11,6 @@ import {
   CardTitle,
 } from '../ui/card';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
-import { Bomb } from 'lucide-react';
 import { useAtom } from 'jotai';
 import { gameStateAtom } from '@/atoms/game-state-atoms';
 import { useCallback, useEffect } from 'react';
@@ -111,25 +110,29 @@ export const Conductor = () => {
   useEffect(() => {
     if (conductorState === 'thinking') {
       const conductorAgent = prepareConductor();
-      execute(
-        {
-          agent: 'conductorAgent',
-          name: `conductor`,
-          input: 'Time for your decision!',
-        },
-        {
-          agents: { conductorAgent },
-          onFlowStart: () => {
-            console.log('Conductor has started deciding');
-            setConductorState('deciding');
+      try {
+        execute(
+          {
+            agent: 'conductorAgent',
+            name: `conductor`,
+            input: 'Time for your decision!',
           },
-          onFlowFinish: () => {
-            console.log('Conductor is finishing the game');
-            setConductorState('done');
-            setGameState('finished');
+          {
+            agents: { conductorAgent },
+            onFlowStart: () => {
+              console.log('Conductor has started deciding');
+              setConductorState('deciding');
+            },
+            onFlowFinish: () => {
+              console.log('Conductor is finishing the game');
+              setConductorState('done');
+              setGameState('finished');
+            },
           },
-        },
-      );
+        );
+      } catch (e) {
+        console.error(e);
+      }
     }
   }, [prepareConductor, setConductorState, setGameState, conductorState]);
 
@@ -142,19 +145,17 @@ export const Conductor = () => {
       >
         <TabsList className="w-full pointer-events-none select-none">
           <TabsTrigger
-            className="flex-1 data-[state=active]:bg-green-700"
+            className="flex-1 data-[state=active]:bg-emerald-500 data-[state=active]:text-white"
             value="left"
           >
             Left Track
           </TabsTrigger>
           <TabsTrigger
-            className="flex-1 data-[state=active]:bg-red-700"
-            value={'bomb'}
-          >
-            <Bomb />
-          </TabsTrigger>
+            className="flex-1 h-full data-[state=active]:bg-red-700 data-[state=active]:bg-opacity-50"
+            value={'none'}
+          ></TabsTrigger>
           <TabsTrigger
-            className="flex-1 data-[state=active]:bg-blue-700"
+            className="flex-1 data-[state=active]:bg-sky-500 data-[state=active]:text-white"
             value="right"
           >
             Right Track
@@ -163,10 +164,12 @@ export const Conductor = () => {
       </Tabs>
       <Card className="flex flex-[4] flex-col h-full w-full items-center content-between">
         <CardHeader>
-          <CardTitle>Conductor</CardTitle>
-          <CardDescription className="self-center">is</CardDescription>
+          <CardTitle className="text-bold">Conductor</CardTitle>
+          <CardDescription className="self-center font-bold">
+            is
+          </CardDescription>
         </CardHeader>
-        <CardContent className="content-center capitalize">
+        <CardContent className="content-center uppercase text-3xl font-bold">
           {conductorState}
         </CardContent>
       </Card>

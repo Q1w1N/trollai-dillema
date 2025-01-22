@@ -1,5 +1,5 @@
 import { Atom, useAtom } from 'jotai';
-import { SpeechBubble } from '../ui/speech-bubble';
+import { SpeechBubble } from './speech-bubble';
 import { cn } from '@/lib/utils';
 
 type SpeechProps = {
@@ -12,7 +12,7 @@ export const PlayerSpeech = ({ playerSpeechAtom, side }: SpeechProps) => {
   return (
     <div
       className={cn(
-        'relative flex flex-1 flex-col-reverse w-full text-white h-full gap-3 p-4 overflow-auto',
+        'block justify-end w-full h-full p-3 overflow-y-auto content-end',
         side === 'left' ? 'items-start' : 'items-end',
       )}
     >
