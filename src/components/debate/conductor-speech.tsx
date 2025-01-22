@@ -6,11 +6,7 @@ export const ConductorSpeech = () => {
   const [speech] = useAtom(conductorSpeechAtom);
 
   return (
-    <div
-      className={
-        'block w-full h-full p-3 overflow-y-auto content-start text-white font-semibold'
-      }
-    >
+    <div className={'block w-full h-full p-3 overflow-y-auto content-start'}>
       {speech.map((sentence, index) => {
         return (
           <SpeechBubble
