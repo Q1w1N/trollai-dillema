@@ -3,7 +3,7 @@ import {
   rightVictimDescriptionAtom,
 } from '@/atoms/victims-atoms';
 import { Victim } from './victim';
-import { GameControl } from './game-controls';
+import { GameControl } from '../game-controls';
 
 export const VictimsSection = () => {
   return (

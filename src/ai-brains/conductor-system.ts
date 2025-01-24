@@ -1,24 +1,95 @@
-export const getConductorSystemPrompt = (leftVictimDescription: string, rightVictimDescription: string, leftPlayerSpeech: string[], rightPlayerSpeech: string[]) => {
-    return `You are playing a Trolley dillema game Conductor.
+import {
+  conductorDecisionAtom,
+  conductorSpeechAtom,
+} from '@/atoms/conductor-atoms';
+import { gameStore } from '@/atoms/store';
+import {
+  leftVictimDescriptionAtom,
+  rightVictimDescriptionAtom,
+} from '@/atoms/victims-atoms';
+import { dramaticPause } from '@/lib/utils';
+import { createOpenAI } from '@ai-sdk/openai';
+import { tool } from 'ai';
+import { agent } from 'flows-ai';
+import { z } from 'zod';
+
+const openai = createOpenAI({ apiKey: import.meta.env['VITE_OPENAI_API_KEY'] });
+
+// Arguments
+// ---
+// Here are arguments made by LEFT player: ${playersArguments.left.map(
+//   (argument) => `\n${argument}`,
+// )}
+// ---
+// Here are arguments made by RIGHT player: ${playersArguments.right.map(
+//   (argument) => `\n${argument}`,
+// )}
+// ---
+
+export const getConductorSystemPrompt = () => {
+  const leftVictim = gameStore.get(leftVictimDescriptionAtom);
+  const rightVictim = gameStore.get(rightVictimDescriptionAtom);
+
+  return `You are playing a Trolley dillema game Conductor.
       THE TRAIN IS INCOMING! There are two tracks, left and right.
       There is a victim on the left track, and a victim on the right track.
       You are responsible with picking track to send the train to, that victim will be run over by a train!
       If you don't make a decision, the train will hit the bomb and everyone explodes!
 
-      On the LEFT tracks there is: ${leftVictimDescription}
-      On the RIGHT tracks there is: ${rightVictimDescription}
+      ---
+      
+      On the LEFT tracks there is: ${leftVictim}
 
-      Arguments
-      ---
-      Here are arguments made by LEFT player: ${leftPlayerSpeech.map(
-        (argument) => `\n${argument}`,
-      )}
-      ---
-      Here are arguments made by RIGHT player: ${rightPlayerSpeech.map(
-        (argument) => `\n${argument}`,
-      )}
+      On the RIGHT tracks there is: ${rightVictim}
+      
       ---
 
       Now you have to make a decision who will be run over with a train!!
-      Make your final speech short, but impactful! There is a lot of tension!`
-}
+      Make your final speech short, but impactful! There is a lot of tension!`;
+};
+
+export const prepareConductor = () => {
+  return agent({
+    model: openai('gpt-4o'),
+    system: getConductorSystemPrompt(),
+    toolChoice: 'required',
+    maxSteps: 1,
+    tools: {
+      speak: tool({
+        parameters: z.object({
+          final_speech_part_1: z
+            .string()
+            .describe('First part of final speech.'),
+          final_speech_part_2: z
+            .string()
+            .describe('Second part of final speech'),
+          verdict_announcement: z.string().describe('Verdict announcement!'),
+          verdict: z.enum(['left', 'right']),
+        }),
+        execute: async ({
+          final_speech_part_1,
+          final_speech_part_2,
+          verdict_announcement,
+          verdict,
+        }) => {
+          gameStore.set(conductorSpeechAtom, (speech) => [
+            ...speech,
+            final_speech_part_1,
+          ]);
+          await dramaticPause(2);
+          gameStore.set(conductorSpeechAtom, (speech) => [
+            ...speech,
+            final_speech_part_2,
+          ]);
+          await dramaticPause(2);
+          gameStore.set(conductorSpeechAtom, (speech) => [
+            ...speech,
+            verdict_announcement,
+          ]);
+          gameStore.set(conductorDecisionAtom, verdict);
+          return `You have decided. Good job.`;
+        },
+      }),
+    },
+  });
+};

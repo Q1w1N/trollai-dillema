@@ -32,7 +32,7 @@ export const Victim = ({ side, victimDescriptionAtom }: VictimProps) => {
         playerColor,
       )}
     >
-      {gameState === 'paused' ? (
+      {gameState === 'stopped' ? (
         <>
           <CardHeader>
             <CardTitle className="capitalize">{side} victim</CardTitle>
