@@ -21,7 +21,7 @@ export const SpeechBubble = ({ text, side }: SpeechBubbleProps) => {
   return (
     <div
       className={clsx(
-        'w-full bg-opacity-70 flex-col gap-2 rounded-md p-3 text-sm my-2',
+        'w-full bg-opacity-70 flex-col gap-2 rounded-md p-3 text-sm mt-2',
         classes,
       )}
     >

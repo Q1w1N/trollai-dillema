@@ -32,9 +32,12 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      dedent:
+        specifier: ^1.5.3
+        version: 1.5.3
       flows-ai:
-        specifier: ^0.2.1
-        version: 0.2.1(react@18.3.1)
+        specifier: ^0.4.0
+        version: 0.4.0(react@18.3.1)
       jotai:
         specifier: ^2.11.1
         version: 2.11.1(@types/react@18.3.12)(react@18.3.1)
@@ -1203,8 +1206,8 @@ packages:
   flatted@3.3.1:
     resolution: {integrity: sha512-X8cqMLLie7KsNUDSdzeN8FYK9rEt4Dt67OsG/DNGnYTSDBG4uFAJFBnUeiV+zCVAvwFy56IjM9sH51jVaEhNxw==}
 
-  flows-ai@0.2.1:
-    resolution: {integrity: sha512-rfS6WaREaBqmJC3v6K0Otae9qQ7Lj4qef//DB9pdeUIYYqwo9Pir/E7PmPBa2kZv3FqkoYinK/2O8LSk49HNig==}
+  flows-ai@0.4.0:
+    resolution: {integrity: sha512-oSYYcuFp/6YxLiELGRTufzFKmAaVlWCfk9Z4nW7c58yDqtPogAXDPOAPieck/czLme+ciHHSUntMN79STGZ7fA==}
     engines: {node: '>=22'}
 
   foreground-child@3.3.0:
@@ -2753,7 +2756,7 @@ snapshots:
 
   flatted@3.3.1: {}
 
-  flows-ai@0.2.1(react@18.3.1):
+  flows-ai@0.4.0(react@18.3.1):
     dependencies:
       '@ai-sdk/openai': 1.1.0(zod@3.24.1)
       ai: 4.1.0(react@18.3.1)(zod@3.24.1)

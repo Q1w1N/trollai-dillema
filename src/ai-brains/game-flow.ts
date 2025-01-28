@@ -5,7 +5,7 @@ import {
 } from '@/atoms/conductor-atoms';
 import { gameStateAtom } from '../atoms/game-state-atoms';
 import { gameStore } from '@/atoms/store';
-import { preparePlayer, setupVictims } from './player-system';
+import { preparePlayer } from './player-system';
 import {
   leftPlayerDescriptionAtom,
   leftPlayerSpeechAtom,
@@ -19,6 +19,32 @@ import {
   rightVictimDescriptionAtom,
 } from '@/atoms/victims-atoms';
 import { prepareConductor } from './conductor-system';
+import { createOpenAI } from '@ai-sdk/openai';
+
+const openai = createOpenAI({ apiKey: import.meta.env['VITE_OPENAI_API_KEY'] });
+
+const setupRounds = (roundsAmount: number) => {
+  return sequence(
+    new Array(roundsAmount).fill(0).map((_, index) => {
+      return parallel(
+        [
+          {
+            agent: 'leftPlayerAgent',
+            name: 'leftPlayer',
+            input: `#${index + 1}`,
+          },
+          {
+            agent: 'rightPlayerAgent',
+            name: 'rightPlayer',
+            input: `#${index + 1}`,
+          },
+        ],
+        `Round ${index + 1}`,
+      );
+    }),
+    `Players Argumenting Phase`,
+  );
+};
 
 export const startGame = () => {
   gameStore.set(gameStateAtom, 'started');
@@ -27,71 +53,59 @@ export const startGame = () => {
   const rightPlayerAgent = preparePlayer({
     playerDescriptionAtom: rightPlayerDescriptionAtom,
     playerSpeechAtom: rightPlayerSpeechAtom,
+    playerVictimDescriptionAtom: rightVictimDescriptionAtom,
+    oponentVictimDescriptionAtom: leftVictimDescriptionAtom,
   });
 
   const leftPlayerAgent = preparePlayer({
     playerDescriptionAtom: leftPlayerDescriptionAtom,
     playerSpeechAtom: leftPlayerSpeechAtom,
+    playerVictimDescriptionAtom: leftVictimDescriptionAtom,
+    oponentVictimDescriptionAtom: rightVictimDescriptionAtom,
   });
 
   const conductorAgent = prepareConductor();
 
-  const flow = sequence([
-    parallel([
+  const flow = sequence(
+    [
+      setupRounds(3),
       {
-        agent: 'leftPlayerAgent',
-        name: 'leftPlayer',
-        input: setupVictims({
-          playerVictimAtom: leftVictimDescriptionAtom,
-          oponentVictimAtom: rightVictimDescriptionAtom,
-        }),
+        agent: 'conductorAgent',
+        name: 'Conductor Speech',
+        input: 'Make your decision based on provided arguments!',
       },
-      {
-        agent: 'rightPlayerAgent',
-        name: 'rightPlayer',
-        input: setupVictims({
-          playerVictimAtom: rightVictimDescriptionAtom,
-          oponentVictimAtom: leftVictimDescriptionAtom,
-        }),
-      },
-    ]),
-    {
-      agent: 'conductorAgent',
-      name: 'conductor',
-      input: 'Make your decision based on provided arguments!',
-    },
-  ]);
+    ],
+    'Game Flow',
+  );
 
   execute(flow, {
+    model: openai('gpt-4o'),
     agents: {
       leftPlayerAgent,
       rightPlayerAgent,
       conductorAgent,
     },
-    onFlowStart: (flow, context) => {
-      console.log(`----FLOW ${flow.name} Started`);
-      console.log('Input: ', flow.input);
-      console.log('Context: ', context);
-      console.log('---');
+    onFlowStart: (flow) => {
+      if (flow.name === 'Players Argumenting Phase') {
+        gameStore.set(conductorStateAtom, 'listening');
+      }
+      if (flow.name === 'Conductor Speech') {
+        gameStore.set(conductorStateAtom, 'deciding');
+      }
     },
-    onFlowFinish: (flow, result) => {
-      console.log(`----FLOW ${flow.name} Started`);
-      console.log('Input: ', flow.input);
-      console.log('Result: ', result);
-      console.log('---');
+    onFlowFinish: (flow) => {
+      if (flow.name === 'Players Argumenting Phase') {
+        gameStore.set(conductorStateAtom, 'thinking');
+      }
+      if (flow.name === 'Conductor Speech') {
+        gameStore.set(conductorStateAtom, 'done');
+        gameStore.set(gameStateAtom, 'finished');
+      }
     },
   });
 };
 
-export const pauseGame = () => {
-  gameStore.set(gameStateAtom, 'paused');
-};
-
-export const continueGame = () => {
-  gameStore.set(gameStateAtom, 'started');
-};
-
-export const stopGame = () => {
+export const restartGame = () => {
   gameStore.set(gameStateAtom, 'stopped');
   gameStore.set(conductorStateAtom, 'waiting');
 

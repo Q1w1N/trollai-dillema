@@ -15,17 +15,6 @@ import { z } from 'zod';
 
 const openai = createOpenAI({ apiKey: import.meta.env['VITE_OPENAI_API_KEY'] });
 
-// Arguments
-// ---
-// Here are arguments made by LEFT player: ${playersArguments.left.map(
-//   (argument) => `\n${argument}`,
-// )}
-// ---
-// Here are arguments made by RIGHT player: ${playersArguments.right.map(
-//   (argument) => `\n${argument}`,
-// )}
-// ---
-
 export const getConductorSystemPrompt = () => {
   const leftVictim = gameStore.get(leftVictimDescriptionAtom);
   const rightVictim = gameStore.get(rightVictimDescriptionAtom);
@@ -76,12 +65,12 @@ export const prepareConductor = () => {
             ...speech,
             final_speech_part_1,
           ]);
-          await dramaticPause(2);
+          await dramaticPause(3);
           gameStore.set(conductorSpeechAtom, (speech) => [
             ...speech,
             final_speech_part_2,
           ]);
-          await dramaticPause(2);
+          await dramaticPause(3);
           gameStore.set(conductorSpeechAtom, (speech) => [
             ...speech,
             verdict_announcement,

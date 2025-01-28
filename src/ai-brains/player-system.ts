@@ -1,82 +1,82 @@
 import { gameStore } from '@/atoms/store';
 import { dramaticPause } from '@/lib/utils';
 import { createOpenAI } from '@ai-sdk/openai';
-import { tool } from 'ai';
-import { agent } from 'flows-ai';
+import { generateText } from 'ai';
+import { Agent } from 'flows-ai';
 import { PrimitiveAtom } from 'jotai';
-import { z } from 'zod';
+import s from 'dedent';
 
 const openai = createOpenAI({ apiKey: import.meta.env['VITE_OPENAI_API_KEY'] });
-
-export const getPlayerSystemPrompt = (description: string) => {
-  return `
-      You are playing a Trolley dillema game.
-
-      --- PERSONAS ---
-      You are impersonating: 
-      ${description}
-      
-      STAY TRUE TO YOUR CHARACTER! 
-      Think like that character, and argument like that character!
-      
-      --- YOUR RULES ---
-      You can use present_argument function only ONCE, 
-      Your arguments HAVE TO BE short and sweet, 
-      ideally one sentence per argument!
-      
-      As a final response return your arguments as a list!
-      `;
-};
-
-export const setupVictims = ({
-  playerVictimAtom,
-  oponentVictimAtom,
-}: {
-  playerVictimAtom: PrimitiveAtom<string>;
-  oponentVictimAtom: PrimitiveAtom<string>;
-}) => {
-  const playerVictim = gameStore.get(playerVictimAtom);
-  const oponentVictim = gameStore.get(oponentVictimAtom);
-
-  return `
-  --- VICTIM YOU WANT TO SPARE
-  ${playerVictim}
-
-  --- VICTIM YOU WANT TO SACRIFICE
-  ${oponentVictim}
-  `;
-};
 
 type PlayerProps = {
   playerDescriptionAtom: PrimitiveAtom<string>;
   playerSpeechAtom: PrimitiveAtom<string[]>;
+  playerVictimDescriptionAtom: PrimitiveAtom<string>;
+  oponentVictimDescriptionAtom: PrimitiveAtom<string>;
 };
 
 export const preparePlayer = ({
   playerDescriptionAtom,
   playerSpeechAtom,
+  playerVictimDescriptionAtom,
+  oponentVictimDescriptionAtom,
 }: PlayerProps) => {
   const playerDescription = gameStore.get(playerDescriptionAtom);
-  const presentArgument = (argument: string) => {
-    gameStore.set(playerSpeechAtom, (speech) => [...speech, argument]);
-  };
+  const playerVictim = gameStore.get(playerVictimDescriptionAtom);
+  const oponentVictim = gameStore.get(oponentVictimDescriptionAtom);
 
-  return agent({
+  return makePlayerAgent({
+    playerContextAtom: playerSpeechAtom,
     model: openai('gpt-4o'),
-    system: getPlayerSystemPrompt(playerDescription),
-    toolChoice: 'auto',
-    maxSteps: 2,
-    tools: {
-      present_argument: tool({
-        parameters: z.object({
-          argument: z.string().describe('Your Argument to put on the table!'),
-        }),
-        execute: async ({ argument }) => {
-          presentArgument(argument);
-          await dramaticPause(5);
-          return `You argumented that: ${argument}`;
-        },
-      }),
-    },
+    system: s`
+      You are playing a Trolley dillema game.
+
+      --- PERSONAS ---
+      You are impersonating: 
+      ${playerDescription}
+      
+      STAY TRUE TO YOUR CHARACTER! 
+      Think like that character, and argument like that character!
+      
+      --- YOUR RULES ---
+      Present only ONE ARGUMENT per response
+      Your arguments HAVE TO BE short and sweet, 
+      ideally one sentence per argument!
+
+      --- VICTIM YOU WANT TO SPARE
+      ${playerVictim}
+
+      --- VICTIM YOU WANT TO SACRIFICE
+      ${oponentVictim}
+      `,
   });
 };
+
+type PlayerAgentProps = Parameters<typeof generateText>[0] & {
+  playerContextAtom: PrimitiveAtom<string[]>;
+};
+
+function makePlayerAgent({
+  maxSteps = 2,
+  playerContextAtom,
+  ...rest
+}: PlayerAgentProps): Agent {
+  return async ({ input }) => {
+    const playerContext = gameStore.get(playerContextAtom);
+
+    const response = await generateText({
+      ...rest,
+      maxSteps,
+      prompt: s`
+        Here are your current arguments: 
+        ${playerContext.join('\n')}
+        Round number: ${JSON.stringify(input)}
+      `,
+    });
+
+    gameStore.set(playerContextAtom, (speech) => [...speech, response.text]);
+    await dramaticPause(5);
+
+    return response.text;
+  };
+}

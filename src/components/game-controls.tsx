@@ -1,41 +1,28 @@
 import { useAtom } from 'jotai';
 import { Button } from './ui/button';
 import { gameStateAtom } from '@/atoms/game-state-atoms';
-import { Pause, PlayIcon, Square } from 'lucide-react';
-import {
-  pauseGame,
-  stopGame,
-  startGame,
-  continueGame,
-} from '@/ai-brains/game-flow';
+import { PlayIcon, RefreshCwIcon } from 'lucide-react';
+import { restartGame, startGame } from '@/ai-brains/game-flow';
 
 export const GameControl = () => {
   const [gameState] = useAtom(gameStateAtom);
 
   return (
     <div className="place-self-center col-span-1 flex gap-4">
-      {gameState === 'stopped' || gameState === 'paused' ? (
+      {gameState === 'stopped' ? (
         <Button
           className="bg-green-500 rounded-full w-10 h-10"
-          onClick={gameState === 'paused' ? continueGame : startGame}
+          onClick={startGame}
         >
           <PlayIcon />
         </Button>
       ) : null}
-      {gameState === 'started' ? (
+      {gameState === 'finished' ? (
         <Button
           className="bg-yellow-500 rounded-full w-10 h-10"
-          onClick={pauseGame}
+          onClick={restartGame}
         >
-          <Pause />
-        </Button>
-      ) : null}
-      {gameState === 'paused' ? (
-        <Button
-          className="bg-red-400 rounded-full w-10 h-10"
-          onClick={stopGame}
-        >
-          <Square />
+          <RefreshCwIcon />
         </Button>
       ) : null}
     </div>

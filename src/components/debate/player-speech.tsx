@@ -12,7 +12,7 @@ export const PlayerSpeech = ({ playerSpeechAtom, side }: SpeechProps) => {
   return (
     <div
       className={cn(
-        'block justify-end w-full h-full p-3 overflow-y-auto content-end',
+        'flex flex-col-reverse justify-start w-full h-full p-3 overflow-y-auto content-end',
         side === 'left' ? 'items-start' : 'items-end',
       )}
     >
