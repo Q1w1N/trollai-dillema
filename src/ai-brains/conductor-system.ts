@@ -52,14 +52,22 @@ export const prepareConductor = () => {
           final_speech_part_2: z
             .string()
             .describe('Second part of final speech'),
-          verdict_announcement: z.string().describe('Verdict announcement!'),
-          verdict: z.enum(['left', 'right']),
+          verdict_announcement: z
+            .string()
+            .describe(
+              'Explicit verdict announcement! Inform Explicitly who will be spared!',
+            ),
+          train_direction: z
+            .enum(['left', 'right'])
+            .describe(
+              'A direction to which train will go resulting in casaulty on that side.',
+            ),
         }),
         execute: async ({
           final_speech_part_1,
           final_speech_part_2,
           verdict_announcement,
-          verdict,
+          train_direction,
         }) => {
           gameStore.set(conductorSpeechAtom, (speech) => [
             ...speech,
@@ -75,7 +83,7 @@ export const prepareConductor = () => {
             ...speech,
             verdict_announcement,
           ]);
-          gameStore.set(conductorDecisionAtom, verdict);
+          gameStore.set(conductorDecisionAtom, train_direction);
           return `You have decided. Good job.`;
         },
       }),
